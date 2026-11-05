@@ -1,0 +1,110 @@
+windows 4007 with trades 4007 spot secs 1211000
+usable windows 4000
+
+[1] trades/fenêtre p10/50/90 [ 882.  1382.5 2315.1] notional taker $ [13497.2 20964.5 34846.1] wallets [386. 520. 694.]
+part du notional avant ouverture 0.054 après fin 0.015
+   notional [0,60) : 0.158
+   notional [60,120) : 0.160
+   notional [120,180) : 0.194
+   notional [180,240) : 0.245
+   notional [240,270) : 0.122
+   notional [270,290) : 0.043
+   notional [290,300) : 0.009
+taille trade $ p10/50/90/99 [  1.    4.   25.5 200. ]
+spread effectif reconstruit (ask-bid, obs <=1s) médiane/p90, n
+   ('extrêmes', 'early') 0.01 0.01 180701
+   ('extrêmes', 'late') -0.0 0.01 34488
+   ('mid 0.15-0.35/0.65-0.85', 'early') -0.0 0.01 277676
+   ('mid 0.15-0.35/0.65-0.85', 'late') -0.04 0.009 11559
+   ('mid 0.35-0.65', 'early') -0.0 0.01 253398
+   ('mid 0.35-0.65', 'late') -0.078 -0.0 5657
+
+[2] fenêtres avec mid exploitable 3990 amplitude max-min du mid Up p10/50/90 [0.395 0.605 0.855]
+   aller-retour exécutable (ask<=a puis bid>=b plus tard, même côté, avant t=295s) — par côté:
+   a=0.10 b=0.30 : entrées 4308  hit 941  p=0.218  (break-even gross p≈0.373 si sinon perte totale)
+   a=0.20 b=0.40 : entrées 4803  hit 1878  p=0.391  (break-even gross p≈0.551 si sinon perte totale)
+   a=0.20 b=0.60 : entrées 4803  hit 1289  p=0.268  (break-even gross p≈0.362 si sinon perte totale)
+   a=0.15 b=0.60 : entrées 4532  hit 846  p=0.187  (break-even gross p≈0.273 si sinon perte totale)
+   a=0.30 b=0.50 : entrées 5417  hit 2691  p=0.497  (break-even gross p≈0.652 si sinon perte totale)
+   a=0.40 b=0.60 : entrées 6243  hit 3573  p=0.572  (break-even gross p≈0.715 si sinon perte totale)
+
+[3] calibration : prix mid Up à tau secondes de la fin -> fréquence Up
+ tau=240s n=3930 Brier marché=0.2027 Brier FV=0.2068
+     [0.0,0.1) n=67 prix=0.074 réel=0.060±0.057 FV=0.024
+     [0.1,0.3) n=802 prix=0.215 réel=0.228±0.029 FV=0.168
+     [0.3,0.5) n=1142 prix=0.399 réel=0.390±0.028 FV=0.386
+     [0.5,0.7) n=1122 prix=0.601 réel=0.610±0.029 FV=0.605
+     [0.7,0.9) n=724 prix=0.779 réel=0.785±0.030 FV=0.826
+     [0.9,1.0) n=73 prix=0.931 réel=0.959±0.046 FV=0.983
+ tau=120s n=3617 Brier marché=0.1271 Brier FV=0.1302
+     [0.0,0.1) n=741 prix=0.042 réel=0.045±0.015 FV=0.026
+     [0.1,0.3) n=654 prix=0.190 réel=0.188±0.030 FV=0.183
+     [0.3,0.5) n=443 prix=0.398 réel=0.429±0.046 FV=0.403
+     [0.5,0.7) n=451 prix=0.605 réel=0.614±0.045 FV=0.600
+     [0.7,0.9) n=660 prix=0.809 réel=0.830±0.029 FV=0.817
+     [0.9,1.0) n=668 prix=0.956 réel=0.961±0.015 FV=0.974
+ tau=60s n=2451 Brier marché=0.0858 Brier FV=0.0887
+     [0.0,0.1) n=715 prix=0.034 réel=0.025±0.011 FV=0.028
+     [0.1,0.3) n=338 prix=0.181 réel=0.207±0.043 FV=0.219
+     [0.3,0.5) n=171 prix=0.398 réel=0.421±0.074 FV=0.421
+     [0.5,0.7) n=175 prix=0.599 réel=0.629±0.072 FV=0.591
+     [0.7,0.9) n=317 prix=0.813 réel=0.855±0.039 FV=0.791
+     [0.9,1.0) n=735 prix=0.968 réel=0.976±0.011 FV=0.968
+ tau=30s n=990 Brier marché=0.0720 Brier FV=0.1004
+     [0.0,0.1) n=337 prix=0.031 réel=0.033±0.019 FV=0.070
+     [0.1,0.3) n=111 prix=0.178 réel=0.153±0.067 FV=0.332
+     [0.3,0.5) n=60 prix=0.406 réel=0.450±0.126 FV=0.449
+     [0.5,0.7) n=44 prix=0.615 réel=0.773±0.124 FV=0.562
+     [0.7,0.9) n=100 prix=0.821 réel=0.780±0.081 FV=0.720
+     [0.9,1.0) n=338 prix=0.970 réel=0.982±0.014 FV=0.928
+ tau=10s n=343 Brier marché=0.0324 Brier FV=0.2255
+     [0.0,0.1) n=136 prix=0.023 réel=0.015±0.020 FV=0.214
+     [0.1,0.3) n=23 prix=0.178 réel=0.130±0.138 FV=0.395
+     [0.7,0.9) n=22 prix=0.846 réel=0.864±0.143 FV=0.627
+     [0.9,1.0) n=144 prix=0.979 réel=1.000±0.000 FV=0.808
+ tau=3s n=148 Brier marché=0.0359 Brier FV=0.4049
+     [0.0,0.1) n=66 prix=0.018 réel=0.015±0.029 FV=0.408
+     [0.9,1.0) n=66 prix=0.980 réel=1.000±0.000 FV=0.642
+
+[4] corrélation Δmid(t) vs ΔFV(t-k) (1s), fenêtres t in [10,280]
+   k=-3 corr=0.031 n=802130
+   k=-2 corr=0.038 n=802130
+   k=-1 corr=0.045 n=802130
+   k=+0 corr=0.061 n=802130
+   k=+1 corr=0.078 n=802130
+   k=+2 corr=0.142 n=802130
+   k=+3 corr=0.317 n=802130
+   k=+5 corr=0.241 n=802130
+   k=+10 corr=-0.005 n=802130
+
+[5] PnL taker à la résolution par share (hors frais), par tranche de temps et de prix
+   ('0-120', 'all'): n=2496589 pnl/share taker brut=-0.0035 frais/share=0.0138 net taker=-0.0174 | maker brut=+0.0035 maker+rebate20%=+0.0063
+   ('0-120', 'p.2-.5'): n=931585 pnl/share taker brut=-0.0075 frais/share=0.0155 net taker=-0.0231 | maker brut=+0.0075 maker+rebate20%=+0.0106
+   ('0-120', 'p.5-.8'): n=1118944 pnl/share taker brut=+0.0044 frais/share=0.0158 net taker=-0.0114 | maker brut=-0.0044 maker+rebate20%=-0.0012
+   ('0-120', 'p<.2'): n=142395 pnl/share taker brut=-0.0078 frais/share=0.0074 net taker=-0.0152 | maker brut=+0.0078 maker+rebate20%=+0.0093
+   ('0-120', 'p>=.8'): n=303665 pnl/share taker brut=-0.0120 frais/share=0.0070 net taker=-0.0191 | maker brut=+0.0120 maker+rebate20%=+0.0134
+   ('120-240', 'all'): n=2573392 pnl/share taker brut=+0.0020 frais/share=0.0082 net taker=-0.0063 | maker brut=-0.0020 maker+rebate20%=-0.0003
+   ('120-240', 'p.2-.5'): n=588796 pnl/share taker brut=+0.0110 frais/share=0.0152 net taker=-0.0042 | maker brut=-0.0110 maker+rebate20%=-0.0080
+   ('120-240', 'p.5-.8'): n=670494 pnl/share taker brut=+0.0006 frais/share=0.0153 net taker=-0.0147 | maker brut=-0.0006 maker+rebate20%=+0.0025
+   ('120-240', 'p<.2'): n=343155 pnl/share taker brut=-0.0003 frais/share=0.0043 net taker=-0.0046 | maker brut=+0.0003 maker+rebate20%=+0.0012
+   ('120-240', 'p>=.8'): n=970947 pnl/share taker brut=-0.0004 frais/share=0.0039 net taker=-0.0043 | maker brut=+0.0004 maker+rebate20%=+0.0012
+   ('240-290', 'all'): n=703803 pnl/share taker brut=-0.0007 frais/share=0.0043 net taker=-0.0050 | maker brut=+0.0007 maker+rebate20%=+0.0016
+   ('240-290', 'p.2-.5'): n=104519 pnl/share taker brut=-0.0045 frais/share=0.0150 net taker=-0.0195 | maker brut=+0.0045 maker+rebate20%=+0.0075
+   ('240-290', 'p.5-.8'): n=111432 pnl/share taker brut=+0.0083 frais/share=0.0152 net taker=-0.0070 | maker brut=-0.0083 maker+rebate20%=-0.0052
+   ('240-290', 'p<.2'): n=130492 pnl/share taker brut=+0.0001 frais/share=0.0020 net taker=-0.0019 | maker brut=-0.0001 maker+rebate20%=+0.0003
+   ('240-290', 'p>=.8'): n=357360 pnl/share taker brut=-0.0025 frais/share=0.0026 net taker=-0.0052 | maker brut=+0.0025 maker+rebate20%=+0.0031
+   ('290-300', 'all'): n=24412 pnl/share taker brut=-0.0054 frais/share=0.0014 net taker=-0.0068 | maker brut=+0.0054 maker+rebate20%=+0.0056
+   ('290-300', 'p.2-.5'): n=1448 pnl/share taker brut=-0.0220 frais/share=0.0149 net taker=-0.0368 | maker brut=+0.0220 maker+rebate20%=+0.0249
+   ('290-300', 'p.5-.8'): n=1585 pnl/share taker brut=-0.0111 frais/share=0.0150 net taker=-0.0261 | maker brut=+0.0111 maker+rebate20%=+0.0141
+   ('290-300', 'p<.2'): n=6414 pnl/share taker brut=-0.0050 frais/share=0.0008 net taker=-0.0058 | maker brut=+0.0050 maker+rebate20%=+0.0051
+   ('290-300', 'p>=.8'): n=14965 pnl/share taker brut=-0.0050 frais/share=0.0016 net taker=-0.0066 | maker brut=+0.0050 maker+rebate20%=+0.0053
+   ('all', 'all'): n=6048395 pnl/share taker brut=-0.0004 frais/share=0.0097 net taker=-0.0102 | maker brut=+0.0004 maker+rebate20%=+0.0024
+   ('all', 'p.2-.5'): n=1706801 pnl/share taker brut=-0.0009 frais/share=0.0155 net taker=-0.0164 | maker brut=+0.0009 maker+rebate20%=+0.0040
+   ('all', 'p.5-.8'): n=2071602 pnl/share taker brut=+0.0033 frais/share=0.0158 net taker=-0.0125 | maker brut=-0.0033 maker+rebate20%=-0.0001
+   ('all', 'p<.2'): n=622625 pnl/share taker brut=-0.0015 frais/share=0.0037 net taker=-0.0053 | maker brut=+0.0015 maker+rebate20%=+0.0023
+   ('all', 'p>=.8'): n=1647367 pnl/share taker brut=-0.0026 frais/share=0.0040 net taker=-0.0065 | maker brut=+0.0026 maker+rebate20%=+0.0034
+   ('pre', 'all'): n=250199 pnl/share taker brut=+0.0025 frais/share=0.0171 net taker=-0.0146 | maker brut=-0.0025 maker+rebate20%=+0.0009
+   ('pre', 'p.2-.5'): n=80453 pnl/share taker brut=-0.0003 frais/share=0.0171 net taker=-0.0174 | maker brut=+0.0003 maker+rebate20%=+0.0037
+   ('pre', 'p.5-.8'): n=169147 pnl/share taker brut=+0.0034 frais/share=0.0172 net taker=-0.0139 | maker brut=-0.0034 maker+rebate20%=+0.0001
+   ('pre', 'p<.2'): n=169 pnl/share taker brut=-0.0902 frais/share=0.0070 net taker=-0.0973 | maker brut=+0.0902 maker+rebate20%=+0.0916
+   ('pre', 'p>=.8'): n=430 pnl/share taker brut=+0.0565 frais/share=0.0047 net taker=+0.0517 | maker brut=-0.0565 maker+rebate20%=-0.0555
