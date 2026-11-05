@@ -94,3 +94,18 @@ venv/bin/python -I scripts/live_analysis.py
 3. Analyser le collecteur (spread, profondeur réelle du bid, lead-lag ms) et valider la reconstruction par trades.
 4. Analyse wallets (taker PnL par wallet, allers-retours vs hold) depuis le dataset.
 5. Rassembler phases 1/2/3ab, rédiger le rapport final, retirer `crypto-updown-wip/`, pousser.
+
+---
+## Mise à jour 2026-11-05 ~13:35 UTC (pause demandée par Elie pour économiser le quota)
+
+Nouveaux résultats (fichiers dans `outputs/`) :
+- `out_twap_check.txt` : finalPrice = TWAP des **60 dernières secondes** (Binance − basis : MAE 3,5 $, direction 97,4 %). Basis Binance(USDT) − Chainlink(USD) ≈ 112 $ médiane, dérive intra-fenêtre ~2,6 $ → **un bot doit lire Chainlink directement** pour la fin de fenêtre.
+- `out_fv_recal.txt` : marché mieux calibré que le modèle FV Binance à toutes les échéances (normal près de la fin : le marché voit Chainlink).
+- `out_backtest.txt` + `out_latency_sens.txt` : **fade brut (idée initiale) ≈ 0 à toutes latences**. Les signaux « écart FV » et « chute non justifiée par le spot » font +6 à +10 ¢/share à 1 s de latence mais **tombent à 0 dès 4–5 s** → soit edge de latence réservé aux bots rapides, soit artefact d'horodatage Data API. **Non tranché.**
+- `out_wallets.txt` : sur 14 j, takers −1,93 M$ net (frais 1,79 M$), 28 % des wallets takers profitables ; les wallets qui font des allers-retours sont parmi les pires.
+- `phase1_repo_inventory.md`, `phase2_api_state.md`, `phase3ab_manipulation_competition.md` : rapports complets des sous-agents. Faits marquants : polycopy cassé (16 appels Data API v1), `py-clob-client-v2` déprécié → `polymarket-client` 0.16.0, taker delay crypto 150 ms, RTDS legacy → PolyBolt (credentials requis), Suisse : pas dans la liste geoblock mais blocage DNS Gespa depuis 2024 ; papier arXiv 2606.31675 (manipulation spot au fixing → passage TWAP) ; arXiv 2607.26245 (lag Binance ~16 ms, réponse cotations ~347 ms) ; wallets célèbres (0x8dxd, gabagool22…) tous inactifs.
+
+**Reste à faire à la reprise (coût modéré) :**
+1. `venv/bin/python -I scripts/live_analysis2.py live/live_1793882166.jsonl.gz` → décalage horodatage Data API vs WS (appariement par tx hash) + lead-lag ms. ⚠️ le fichier live (160 Mo) est **dans le scratchpad, pas sur git** : s'il a disparu, relancer `collector.py` 30–60 min (ou accepter l'estimation du papier arXiv 2607.26245).
+2. Si l'écart FV survit à la latence réelle : tester en mode maker (le seul profil qui gagne d'après les données).
+3. Rédiger `docs/research/crypto-updown-feasibility.md` (synthèse) + annexes, retirer `crypto-updown-wip/`, pousser.
