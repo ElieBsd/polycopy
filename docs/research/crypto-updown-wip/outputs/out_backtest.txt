@@ -5,3 +5,15 @@ train 2574 test 1426
    TEST  n=  699 pnl/share=+0.0171 IC95=[+0.0049,+0.0299] ret/$=+0.099 win=0.54 {'tp': 338, 'sl': 252, 'time': 97, 'res': 12}
    TEST slip=1c n=  699 pnl/share=+0.0005 IC95=[-0.0119,+0.0134] ret/$=+0.021 win=0.51 {'tp': 322, 'sl': 272, 'time': 96, 'res': 9}
    TEST lat=3s n=  698 pnl/share=+0.0226 IC95=[+0.0088,+0.0375] ret/$=+0.189 win=0.52 {'sl': 257, 'tp': 308, 'time': 116, 'res': 17}
+
+== S1b fade + FV confirme sous-évaluation best params=(0.25, 5, 0.08) exits=(0.2, 0.1, 240)
+   TRAIN n=  675 pnl/share=+0.0995 IC95=[+0.0840,+0.1157] ret/$=+0.376 win=0.65 {'time': 214, 'sl': 186, 'tp': 275}
+   TEST  n=  403 pnl/share=+0.0844 IC95=[+0.0607,+0.1050] ret/$=+0.441 win=0.60 {'tp': 150, 'sl': 130, 'time': 123}
+   TEST slip=1c n=  403 pnl/share=+0.0607 IC95=[+0.0380,+0.0827] ret/$=+0.290 win=0.56 {'tp': 140, 'sl': 141, 'time': 122}
+   TEST lat=3s n=  402 pnl/share=+0.0389 IC95=[+0.0152,+0.0630] ret/$=+0.340 win=0.51 {'sl': 157, 'time': 130, 'tp': 115}
+
+== S1c chute NON justifiée par le spot (candidat manipulation) best params=(0.25, 15, 0.0) exits=(0.4, 0.1, 285)
+   TRAIN n=  527 pnl/share=+0.1100 IC95=[+0.0837,+0.1362] ret/$=+0.468 win=0.50 {'tp': 219, 'sl': 245, 'res': 20, 'time': 43}
+   TEST  n=  318 pnl/share=+0.1228 IC95=[+0.0869,+0.1547] ret/$=+0.501 win=0.51 {'sl': 143, 'res': 15, 'tp': 142, 'time': 18}
+   TEST slip=1c n=  318 pnl/share=+0.0979 IC95=[+0.0614,+0.1296] ret/$=+0.381 win=0.49 {'sl': 153, 'res': 12, 'tp': 133, 'time': 20}
+   TEST lat=3s n=  315 pnl/share=+0.0574 IC95=[+0.0225,+0.0913] ret/$=+0.276 win=0.46 {'sl': 165, 'res': 18, 'tp': 105, 'time': 27}
