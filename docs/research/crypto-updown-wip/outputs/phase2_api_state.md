@@ -1,3 +1,5 @@
+ÉTAT : complet — sections faites : 0, A (SDK, REST, ordres, rate limits, prices-history, Data API v2), B (WS market/user, RTDS→PolyBolt), C (marchés, slugs, résolution, frais, microstructure), D (légal CH, ToS, Polymarket US, fiscalité), D.bis (Perps), E (écarts polycopy), F (sources), G (annexes). Restantes : aucune (WS non testés en direct, hôtes hors liste).
+
 # Polymarket — état de l'API, des marchés crypto « Up or Down » court terme, des frais et de l'accès légal (au 5 novembre 2026)
 
 > Rapport de recherche, phase 2. Cible : un développeur basé en **Suisse** qui veut un bot de scalping intra-fenêtre sur « Bitcoin Up or Down » 5 min / 15 min / 1 h, et dont le dernier état de l'art date d'avril–mai 2026 (CLOB V2 + pUSD, `py_clob_client_v2==1.0.0`).
@@ -323,7 +325,7 @@ Séries Gamma trouvées via `GET /series?slug=<asset>-up-or-down-<rec>` [VÉRIFI
  "startDate":"2026-11-04T12:39:14.482073Z","endDate":"2026-11-05T12:35:00Z","eventStartTime":"2026-11-05T12:30:00Z",
  "createdAt":"2026-11-04T12:37:29.982105Z","acceptingOrdersTimestamp":"2026-11-04T12:37:42Z",
  "outcomes":"[\"Up\", \"Down\"]","outcomePrices":"[\"0.605\", \"0.395\"]",
- "clobTokenIds":"[\"8298250612127404285662398859465419755040566656122291224346404000106470102785 7\", \"9168814990911584038338323164725674576733417051987352409643709881202586345948\"]",
+ "clobTokenIds":"[\"82982506121274042856623988594654197550405666561222912243464040001064701027857\", \"9168814990911584038338323164725674576733417051987352409643709881202586345948\"]",
  "active":true,"closed":false,"acceptingOrders":true,"restricted":true,"enableOrderBook":true,
  "orderPriceMinTickSize":0.01,"orderMinSize":5,"negRisk":false,
  "feesEnabled":true,"feeType":"crypto_fees_v2","feeSchedule":{"exponent":1,"rate":0.07,"takerOnly":true,"rebateRate":0.2},
@@ -333,7 +335,6 @@ Séries Gamma trouvées via `GET /series?slug=<asset>-up-or-down-<rec>` [VÉRIFI
  "rfqEnabled":false,"holdingRewardsEnabled":false,"tradingEligible":true,
  "volume":"2","liquidity":"16431.343","bestBid":0.52,"bestAsk":0.53,"spread":0.01,"lastTradePrice":0.54,"version":"v1"}
 ```
-(Dans l'extrait, l'espace dans le premier tokenId est une coupure de mise en page. La valeur exacte est `82982506121274042856623988594654197550405666561222912243464040001064701027857`.)
 
 ### C.3 Résolution
 
@@ -486,6 +487,19 @@ Séries Gamma trouvées via `GET /series?slug=<asset>-up-or-down-<rec>` [VÉRIFI
 - Un bot de scalping à haute fréquence a de fortes chances d'être vu comme une **activité lucrative indépendante** ou comme des gains de jeu imposables, d'où l'intérêt d'un ruling cantonal. Les pertes ne sont en principe pas déductibles en tant que gains de jeu [SUPPOSÉ].
 - La fortune en pUSD/USDC est imposable au titre de l'impôt sur la fortune [SUPPOSÉ].
 
+## D.bis Polymarket Perps (nouveau produit, lancé en juin 2026)
+
+Toutes ces informations sont [VÉRIFIÉ doc officielle] ([Perps overview](https://docs.polymarket.com/perps/overview.md), [Fees](https://docs.polymarket.com/perps/learn-about-trading/fees.md), [FAQ](https://docs.polymarket.com/perps/faq.md), [Perps changelog](https://docs.polymarket.com/changelog/perps.md), consultés le 2026-11-05). L'API `api.perpetuals.polymarket.com` n'a pas été testée : hôte hors liste.
+
+- **Produit** : contrats perpétuels sur indices, matières premières, crypto et actions, collatéral pUSD, avec funding, mark price et index price.
+- **Levier** : jusqu'à 20x en crypto, SP500, pétrole, or et argent ; 10x pour les autres RWA. `MMR = 0,5 / max_leverage`, soit 2,5 % sur un marché 20x. Marge isolée par défaut, cross en option via l'API.
+- **Ordres** : GTC (post-only possible), IOC, FOK, GTD. Self-trade prevention CancelMaker activée par défaut. Dead-man switch `PATCH /v1/trade/auto-cancel`, ajouté le 2026-06-08.
+- **API** : REST `https://api.perpetuals.polymarket.com/v1/info/{instruments,book,trades,tickers,klines,funding,mark-history}` (public), sessions authentifiées pour le trading, WS temps réel, AsyncAPI `asyncapi-perps.json`. Le SDK `polymarket-client` expose Perps en « experimental ».
+- **Chronologie** : la première entrée du changelog Perps date du **2026-06-08**, la dernière du **2026-11-05** (carnet d'adresses de retrait). Des « odds orders » sont annoncés mais **pas encore actifs** (`POST /v1/trade/odds-orders` renvoie 404).
+- **Frais (palier par volume 30 j)** : taker 0,040 % / maker 0,0125 % à 0 $ ; 0,037 / 0,010 dès 1 M$ ; 0,035 / 0,008 dès 5 M$ ; 0,030 / 0,005 dès 25 M$ ; 0,027 / 0,002 dès 100 M$ ; 0,025 / 0 dès 500 M$ ; 0,020 / **−0,005** (rebate) dès 1 Md$. Le frais est calculé sur le notional : `|prix × quantité| × rate`.
+- **Restrictions géographiques Perps (FAQ)** : « Order placement is not permitted from the United States, Canada, Cuba, Iran, North Korea, Syria, Crimea, Donetsk, or Luhansk. » La Suisse n'y figure pas. La liste est **différente** de la liste geoblock des marchés de prédiction. Le blocage DNS Gespa vise le domaine polymarket.com ; son applicabilité aux Perps n'est pas documentée [SUPPOSÉ].
+- **Intérêt pour le bot** [DÉDUIT] : un perp BTC à 0,04 % taker est **environ 90 fois moins cher** en frais que le taker Up/Down à p = 0,5 (3,5 % du notional). Il peut servir à **couvrir le delta** d'une position Up/Down au sein de la même plateforme, avec le même collatéral pUSD. La faisabilité (marge séparée, transferts internes) reste à vérifier dans *Fund Your Account*.
+
 ---
 
 ## E. Écarts vs les hypothèses de polycopy
@@ -544,6 +558,7 @@ Séries Gamma trouvées via `GET /series?slug=<asset>-up-or-down-<rec>` [VÉRIFI
 | 21 | data-api.polymarket.com v1 (410) et v2 `/trades`, `/activity`, `/positions`, `/value`, `/user-stats`, `/holders`, `/oi`, `/tokens`, `/resolutions`, `/status`, `/prices-history` | appels réels du 2026-11-05 | Data API |
 | 22 | polymarket.com/api/crypto/crypto-price (non documenté) | appel réel du 2026-11-05 | ne correspond pas aux valeurs TWAP |
 | 23 | Presse via WebSearch : SRF, bluewin, 20 Minuten, jamma.it, sigma.world (Gespa) ; crypto.news, cryptodaily, SCCG (TWAP / Stanford) ; cryptobriefing, predictionnews, coindesk (Polymarket US) ; polybot.trading (taker delay) ; merkblätter SZ / TG / ESTV (fiscalité) | publications de 2024-11 à 2026-10, résumés consultés le 2026-11-05 | [SUPPOSÉ] |
+| 24 | https://docs.polymarket.com/perps/{overview,faq,learn-about-trading/fees,learn-about-trading/markets,market-data}.md + changelog/perps.md | changelog Perps du 2026-06-08 au 2026-11-05, consultés le 2026-11-05 | Perps |
 
 ---
 

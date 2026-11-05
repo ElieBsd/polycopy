@@ -1,4 +1,4 @@
-ÉTAT : partiel — sections faites : 0-7 ; restantes : 8 (dettes/bugs), 9 (Data API v1), annexes
+ÉTAT : complet — sections 0 à 9 + annexes A/B faites (audit lecture seule, 2026-11-05)
 
 # Phase 1 — Inventaire du dépôt `polycopy` en vue du pivot « scalping Up/Down crypto »
 
@@ -846,3 +846,91 @@ SELECT at, json_extract(event_metadata, '$.drawdown_pct') AS dd_pct,
 FROM trader_events WHERE event_type = 'kill_switch' ORDER BY at;
 ```
 `realized_pnl` des snapshots n'est rempli que depuis M17 (MD.6) ; avant, il vaut 0. Le total est valorisé au mid.
+
+---
+
+## 8. Dettes et bugs connus qui impacteraient le nouveau bot
+
+Légende impact : 🔴 bloquant si le code est réutilisé tel quel, 🟠 important, 🟡 mineur. La colonne « Source » indique d'où vient le constat : **NOUVEAU** = constaté dans cet audit.
+
+| # | Dette / bug | Source | Réf. | Impact nouveau bot |
+|---|---|---|---|---|
+| 1 | Data API v1 retirée (HTTP 410). Tenacity retente aussi les 410 (5 essais pour le watcher et le wallet reader, 4 pour la discovery), d'où des boucles d'erreur. | constat du 2026-11-05 + NOUVEAU (retry) | §9 | 🔴 tout ce qui lit la Data API |
+| 2 | **Réouverture impossible** : UNIQUE(`condition_id`, `asset_id`, `simulated`) non partielle → `IntegrityError` au 2ᵉ BUY sur le même token après clôture, et ordre orphelin | NOUVEAU (l'audit M-004 ne parlait que de concurrence) | `models.py:268-274`, `0004_m8_dry_run_realistic.py:56-60`, `repositories.py:770-781` | 🔴 le scalping ré-entre en permanence |
+| 3 | `realized_pnl` live jamais calculé (`upsert_on_fill` ne traite que la taille) | NOUVEAU | `repositories.py:699-702` | 🔴 PnL et kill switch live aveugles |
+| 4 | PnL des SELL partiels perdu (seule la dernière tranche compte) ; aucune table de fills | documenté « v1 » dans le code | `repositories.py:786-799` | 🔴 les TP/SL partiels faussent le PnL |
+| 5 | Fees jamais déduites du `realized_pnl` ; SELL en passthrough fee (M16 D5) | M16 | `pipeline.py:325-345` | 🟠 PnL surestimé de 2 à 3,6 % du notionnel par aller-retour taker crypto |
+| 6 | Limite = mid avec FOK (non marchable si spread > 0) ; arrondi au plus proche | NOUVEAU (déduction, jamais testé en live) | `strategy/orchestrator.py:191`, `executor/pipeline.py:44-48,97` | 🔴 en live, les entrées et sorties seraient tuées |
+| 7 | Sémantique `size` non tranchée (`FIXME`) ; jamais testé en live | M3 §17 | `clob_write_client.py:126`, `executor/dtos.py:21-23` | 🔴 à valider sur un ordre de 1 $ |
+| 8 | Garde-fou capital : stub constant + exposition via Data API v1 ; appliqué aussi aux SELL | NOUVEAU (partiel M3) | `wallet_state_reader.py:42-89`, `executor/pipeline.py:152-189` | 🔴 aucune vérification de la balance pUSD réelle |
+| 9 | Pas de `orderMinSize` (5 shares) ni de validation du tick au placement ; `tick_size_change` WS ignoré | NOUVEAU | `clob_ws_client.py:365`, `clob_metadata_client.py:40` | 🟠 rejets live, divergence dry-run vs live |
+| 10 | Le simulateur de fill ignore le prix limite, les fees, la latence et l'impact ; book REST caché 5 s | NOUVEAU (M8 hors scope) | `realistic_fill.py:45-70`, `clob_orderbook_reader.py:57` | 🟠 dry-run optimiste |
+| 11 | Les SELL passent par MarketFilter (`expiry_too_close` < 24 h), SlippageChecker et RiskManager | NOUVEAU | `strategy/pipeline.py:91-109,348-417` | 🔴 si le pipeline est réutilisé : sorties bloquées |
+| 12 | Kill switch : polling 300 s, valorisation au mid ; en live, source Data API v1 + stub (total = exposition + constante) | NOUVEAU (partiel C-004) | `config.py:448-452`, `pnl_writer.py:92-150` | 🔴 inadapté à des fenêtres de 5 min |
+| 13 | Résolution M8 inopérante jusqu'au 2026-05-22 (comma-join Gamma + `closed` exclu), puis polling 30 min ; pas de redeem live | commits `effaa34`, `371f8dc` | `dry_run_resolution_watcher.py`, `gamma_client.py:58-120` | 🟠 à refaire en événementiel |
+| 14 | PnL figé 11 jours par une position injoignable (corrigé `effaa34`) ; retry tenacity sur 404 (corrigé) | commit `effaa34` | `virtual_wallet_reader.py:123-166`, `clob_read_client.py:25-40` | 🟡 corrigé, mais à garder en test de non-régression |
+| 15 | Argent en `Float` | audit M-012 | `models.py` (toutes les colonnes USDC) | 🟠 dérive sur des milliers de fills |
+| 16 | Caches async sans single-flight (Gamma, orderbook, WS) ; MD.8 différé | audit M-007 | `gamma_client.py`, `clob_orderbook_reader.py:69-87` | 🟡 |
+| 17 | Race d'éviction LRU dans le WS (`pop` puis `await unsub`) ; double déclenchement du watchdog | audit H-015, M-017 | `clob_ws_client.py:457-464,506` | 🟠 si le transport WS est réutilisé |
+| 18 | Instrumentation latence : INSERT awaité dans le chemin chaud ; `strategy_filtered > enriched` (H-001) ; `watcher_detected_ms` mélange temps réel et backfill | audit H-001, backlog | `pipeline.py:476-477`, `strategy/orchestrator.py:147-173` | 🟠 |
+| 19 | Arrêt lent (1-3 min) au SIGTERM, TaskGroup non borné | backlog, session D3, MI | `runner.py:199-203` | 🟠 un cancel-all doit partir en moins d'une seconde |
+| 20 | SQLite sans WAL ni `busy_timeout` ; une session et un commit par écriture | NOUVEAU | `storage/engine.py:11-19` | 🟠 contention sous flux de ticks |
+| 21 | Mode `SIMULATION` = stub (pas de replay) | NOUVEAU | `executor/pipeline.py:114-124` | 🟠 il n'y a pas de backtester |
+| 22 | `alembic` en dépendance dev mais importé au runtime ; `init_db` lié à l'arborescence source ; deps mortes `polymarket-apis`, `python-telegram-bot` | NOUVEAU | `pyproject.toml`, `storage/init_db.py:16-31` | 🟡 packaging |
+| 23 | Règle de dépendance inter-modules non respectée (strategy ↔ executor ↔ monitoring) | NOUVEAU | §1.3 | 🟡 conception |
+| 24 | `use_server_time=True` par défaut : +50-200 ms par signature (selon CLAUDE.md M18) | M18 D8 | `config.py:72`, `clob_write_client.py:94` | 🟠 latence d'ordre |
+| 25 | Pas de gestion du HTTP 425 (redémarrage du matching engine, le mardi vers 7 h ET, ~90 s) | `docs/next/MK.md` (F51) | `executor/pipeline.py:212-218` | 🟠 fenêtres manquées |
+| 26 | Fixtures WS et `clob-markets` V2 **synthétiques** (malgré « capturé ») | NOUVEAU | `tests/fixtures/clob_ws_market_sample.jsonl`, `clob_v2_market_*_sample.json` | 🟠 recapturer avant de coder le parse L2 |
+| 27 | Dashboard « gain max latent » côté `No` = `size × avg_price` (faux : le payoff d'un token acheté est toujours `size × (1 − avg)`) ; outcomes `Up`/`Down` non prévus | NOUVEAU (régression MH.5 / M-011) | `dashboard/queries.py:977-986` | 🟡 à ne pas porter |
+| 28 | Alertes avec cooldown 60 s par clé ; queue d'alertes de 100 en drop silencieux | M4, M-009 | `alert_dispatcher.py:129-133`, `runner.py:42` | 🟡 rafales d'erreurs d'ordres |
+| 29 | Tests flaky `test_watcher_live_reload.py` | todo | `docs/todo.md` (§ tests flaky) | — (jeté) |
+| 30 | Juridiction : Polymarket inaccessible officiellement depuis la France et d'autres pays | README | `README.md` | ⚠️ à trancher hors code |
+
+---
+
+## 9. Sites d'appel à la Data API v1 (cassés)
+
+Tous ciblent `https://data-api.polymarket.com` **sans préfixe `/v2/`**. Les DTO lisent les champs camelCase v1. Ils utilisent `populate_by_name=True`, si bien que les champs **dont le nom Python est déjà en snake_case** (`proxy_wallet`, `condition_id`, `transaction_hash`, `usdc_size`, `outcome_index`, `avg_price`, `current_value`, `cash_pnl`…) seraient acceptés si v2 renvoie exactement ces noms. En revanche :
+- les champs nommés `asset` (v2 `token_id`) restent obligatoires et casseraient la validation ;
+- les accès **dict bruts** `.get("conditionId")` / `.get("proxyWallet")` renverraient silencieusement `None`, ce qui donnerait des métriques vides **sans erreur**. C'est le pire mode de panne si quelqu'un se contente de changer le chemin.
+
+| # | Fichier:ligne | Endpoint v1 | Champs consommés | Usage / effet de la panne |
+|---|---|---|---|---|
+| 1 | `src/polycopy/watcher/data_api_client.py:37,114-127` | `GET /activity?user=&type=TRADE&limit&offset&sortDirection=ASC&start=` | filtre `raw["type"]` (`:70`) | Détection des trades source. 5 retries puis `poller_error` en boucle. |
+| 2 | `src/polycopy/watcher/dtos.py:29-37` (`TradeActivity`) | idem | `proxyWallet`, `timestamp`, `conditionId`, `asset`, `side`, `size`, `usdcSize`, `price`, `transactionHash`, `outcome`, `slug`, `type` | `asset` → v2 `token_id` : échec de validation. |
+| 3 | `src/polycopy/watcher/wallet_poller.py:101,168-182` | via #1 | `transaction_hash`, `asset`, `usdc_size`… ; `raw_json = model_dump(by_alias=True)` (camelCase en DB) | Les requêtes SQL qui lisent `raw_json` (§7 Q8) supposent des clés camelCase. |
+| 4 | `src/polycopy/discovery/data_api_client.py:41,56-82` | `GET /holders?market=&limit=` | `holders[].proxyWallet` (dict brut `:74`), puis `HolderEntry` | Bootstrap du pool. Avec des clés snake_case, tous les holders seraient ignorés en silence. |
+| 5 | `src/polycopy/discovery/data_api_client.py:86-115` | `GET /trades?limit&takerOnly&filterType=CASH&filterAmount` | `GlobalTrade` : `proxyWallet`, `asset`, `conditionId`, `side`, `size`, `price`, `timestamp`, `transactionHash`, `title`, `slug` | Bootstrap du pool (**410 confirmé**). |
+| 6 | `src/polycopy/discovery/data_api_client.py:119-131` | `GET /value?user=` | `user`, `value` | Sanity check du capital et equity quotidienne. |
+| 7 | `src/polycopy/discovery/data_api_client.py:135-163` | `GET /positions?user=&limit=500&sortBy=CASHPNL&sortDirection` | `RawPosition` : `conditionId`, `asset`, `size`, `avgPrice`, `initialValue`, `currentValue`, `cashPnl`, `realizedPnl`, `totalBought`, `redeemable`, `outcomeIndex` | Métriques v1/v2, gates, Brier, arbitrage gate. |
+| 8 | `src/polycopy/discovery/data_api_client.py:167-198` | `GET /activity?user=&type=TRADE&limit=1000&sortDirection=DESC&start=` | dicts bruts `type`, `conditionId`, `size`, `price`, `timestamp` | `days_active`, volume, HHI. |
+| 9 | `src/polycopy/discovery/data_api_client.py:211-232` | retry commun (4 essais, 404 → `[]`) | — | Les 410 sont retentés. |
+| 10 | `src/polycopy/discovery/dtos.py:99-188` | (DTO pour #4-#7) | `proxyWallet`, `outcomeIndex`, `conditionId`, `transactionHash`, `avgPrice`, `initialValue`, `currentValue`, `cashPnl`, `realizedPnl`, `totalBought` | — |
+| 11 | `src/polycopy/discovery/metrics_collector.py:47-48,76-81` | `get_positions` + `get_activity_trades` | `t.get("conditionId")`, `size`, `price` | Scoring v1 (métriques vides en silence si le schéma change). |
+| 12 | `src/polycopy/discovery/metrics_collector_v2.py:116-117,142,355-356,380,401-407` | idem | `conditionId`, `size`, `price`, `timestamp` (dict bruts) | Scoring v2.x. |
+| 13 | `src/polycopy/discovery/trader_daily_pnl_writer.py:153-154` | `get_value` + `get_positions` | `value`, `realized_pnl`, `is_resolved` | Courbe d'equity des wallets. |
+| 14 | `src/polycopy/discovery/candidate_pool.py:101,123` | `get_holders`, `get_global_trades` | — | Construction du pool. |
+| 15 | `src/polycopy/executor/wallet_state_reader.py:27,33,75-89` | `GET /positions?user=<funder>&limit=500` | `currentValue` (`:59`) | **Live** : garde-fou capital de l'executor et `PnlSnapshotWriter` (le kill switch live ne s'évalue plus). |
+| 16 | `src/polycopy/dashboard/health_check.py:24,98` | `HEAD/GET /trades?limit=1` | code HTTP | Le footer du dashboard reste « degraded » en permanence. |
+| 17 | `scripts/score_backtest.py:49,140-144` | `DiscoveryDataApiClient.get_positions` | via #7 | Script de backtest du scoring. |
+| 18 | `tests/integration/test_data_api_live.py` | v1 | — | Test d'intégration opt-in. |
+| 19 | Fixtures v1 camelCase : `tests/fixtures/activity_sample.json`, `data_api_holders_sample.json`, `data_api_positions_sample.json`, `data_api_trades_global_sample.json`, `data_api_value_sample.json` | — | — | Tests unitaires watcher/discovery (verts sur un schéma mort). |
+
+Hors code : `docs/architecture.md`, `CLAUDE.md` (« APIs Polymarket utilisées »), les specs M1/M5 et `.env.example` documentent les chemins v1.
+
+Ne dépendent **pas** de la Data API (et restent valides) : Gamma (`strategy/gamma_client.py`, `discovery/scoring/v2/category_resolver.py`, `fee_rate_client._resolve_token_to_condition` → Gamma `/markets-by-token`), CLOB REST (`/midpoint`, `/book`, `/tick-size`, `/clob-markets/{cid}`), CLOB WSS `market` et Goldsky.
+
+---
+
+## Annexe A — Faits empiriques du dry-run polycopy (tirés des commits et des docs)
+
+- **Configuration** (`docs/todo.md:12-21,339-402`) : `EXECUTION_MODE=dry_run`, `DRY_RUN_REALISTIC_FILL=true`, capital virtuel 1 000 $, `MAX_POSITION_USD=20`, `COPY_RATIO=0.01`, `MAX_SLIPPAGE_PCT=2`, `KILL_SWITCH=20 %`, discovery + eviction actives, scoring v2.1, `MIN_HOURS_TO_EXPIRY` non surchargé (24 h). Redémarrage avec DB vierge le 2026-04-29, puis compteurs remis à zéro le 2026-05-02 après des correctifs.
+- **État au 2026-05-22** (commits `effaa34`, `371f8dc`) : environ 566-567 positions virtuelles ouvertes ; 111 positions fermées, **toutes par SELL copié** (la résolution n'avait jamais fonctionné) ; PnL figé à environ 985 $ pendant 11 jours ; après le correctif, 95 positions résolues fermées, réalisé passé de −1,53 $ à −15,17 $, total de 988,77 $ à 975,08 $.
+- **Latence** (2026-04-24, `docs/next/MK.md`) : `watcher_detected_ms` p50 13,4 s, p95 44 s, p99 44 min (backfill). Entonnoir enriched 27 418 → sized 13 153 → risk_checked 1 556 → submitted 1 169. Selon le backlog : `executor_submitted_ms` p50 635 ms, `strategy_sized_ms` p50 2,7 ms ; `position_already_open` est le premier motif de rejet.
+- **Marché cible** : dans le fixture réel `/trades` v1 (2026-04-18, 500 trades ≥ 100 $), 44 trades portaient sur des fenêtres up/down 5m/15m (BTC 39, ETH 2, XRP 3). Titre type : « Bitcoin Up or Down - April 18, 5:20AM-5:25AM ET », outcomes `Up`/`Down`.
+
+## Annexe B — Fichiers produits par cet audit
+
+- Rapport : `/tmp/claude-0/-home-user-polycopy/c1517565-1179-5cad-9d67-6c943a23d73d/scratchpad/phase1_repo_inventory.md`
+- Schéma SQLite reconstruit et données synthétiques : `/tmp/claude-0/-home-user-polycopy/c1517565-1179-5cad-9d67-6c943a23d73d/scratchpad/phase1_sqltest/schema.sql`
+- Toutes les requêtes du §7 (validées : 31/31 s'exécutent) : `/tmp/claude-0/-home-user-polycopy/c1517565-1179-5cad-9d67-6c943a23d73d/scratchpad/phase1_sqltest/postmortem.sql`
