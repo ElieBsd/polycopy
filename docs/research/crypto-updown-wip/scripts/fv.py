@@ -10,7 +10,7 @@ def build_spot_path(spot, s0, dur, pre=1800, post=120):
         if v is not None: last = v
         a[i] = last
     return a
-def fair_values(S, K, s_idx0, dur=300, L=60, vol_window=1800):
+def fair_values(S, K, s_idx0, dur=300, L=60, vol_window=1800, basis_sd=3.5):
     """S: spot (Binance) par seconde, index s_idx0 = début de fenêtre. K = price to beat (Chainlink TWAP).
     Retourne P(Up) pour t = 0..dur-1 (information jusqu'à t inclus), sigma utilisée, basis."""
     pre = S[s_idx0 - vol_window: s_idx0]
@@ -28,5 +28,6 @@ def fair_values(S, K, s_idx0, dur=300, L=60, vol_window=1800):
             known = S[E - L + 1: i + 1] - basis      # secondes déjà dans la fenêtre TWAP
             mean = (known.sum() + tau * c) / L
             var = sd_abs ** 2 * tau ** 3 / (3.0 * L * L)
+        var += basis_sd ** 2   # incertitude basis Binance(USDT) vs Chainlink(USD), mesurée ~2.6$ médiane
         P[t] = Phi((mean - K) / sqrt(var)) if var > 0 else (1.0 if mean >= K else 0.0)
     return P, sig, basis

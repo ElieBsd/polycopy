@@ -1,0 +1,6 @@
+tau=240s n=3930 Brier marché=0.2027 Brier FV=0.2067 Brier moyenne(marché,FV)=0.2029
+tau=120s n=3617 Brier marché=0.1271 Brier FV=0.1301 Brier moyenne(marché,FV)=0.1265
+tau= 60s n=2451 Brier marché=0.0858 Brier FV=0.0886 Brier moyenne(marché,FV)=0.0837
+tau= 30s n=990 Brier marché=0.0720 Brier FV=0.0970 Brier moyenne(marché,FV)=0.0740
+tau= 10s n=343 Brier marché=0.0324 Brier FV=0.1800 Brier moyenne(marché,FV)=0.0737
+tau=  3s n=148 Brier marché=0.0359 Brier FV=0.2896 Brier moyenne(marché,FV)=0.1008

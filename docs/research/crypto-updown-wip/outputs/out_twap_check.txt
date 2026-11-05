@@ -1,0 +1,8 @@
+spot_end             MAE=  14.75$ médiane|e|=  9.08$ accord direction=0.9190
+twap60_end           MAE=   3.51$ médiane|e|=  2.59$ accord direction=0.9735
+twap30_end           MAE=   8.71$ médiane|e|=  5.55$ accord direction=0.9473
+twap300              MAE=  24.86$ médiane|e|= 16.87$ accord direction=0.8770
+twap60_end_shift1    MAE=   3.32$ médiane|e|=  2.48$ accord direction=0.9740
+twap60_end_shift-1   MAE=   3.73$ médiane|e|=  2.72$ accord direction=0.9732
+basis Binance-Chainlink $ médiane 112.50551719051873 p10/p90 [ 89.4441779 138.6694624]
+dérive basis début->fin $ : médiane|d| 2.5890928430162603 p90 7.3276127600474865

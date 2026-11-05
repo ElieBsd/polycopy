@@ -1,0 +1,7 @@
+train 2574 test 1426
+
+== S1 fade (chute brute, achat du côté qui vient de chuter) best params=(0.25, 5, None) exits=(0.1, 0.1, 240)
+   TRAIN n= 1155 pnl/share=+0.0265 IC95=[+0.0164,+0.0383] ret/$=+0.146 win=0.57 {'sl': 399, 'tp': 596, 'time': 154, 'res': 6}
+   TEST  n=  699 pnl/share=+0.0171 IC95=[+0.0049,+0.0299] ret/$=+0.099 win=0.54 {'tp': 338, 'sl': 252, 'time': 97, 'res': 12}
+   TEST slip=1c n=  699 pnl/share=+0.0005 IC95=[-0.0119,+0.0134] ret/$=+0.021 win=0.51 {'tp': 322, 'sl': 272, 'time': 96, 'res': 9}
+   TEST lat=3s n=  698 pnl/share=+0.0226 IC95=[+0.0088,+0.0375] ret/$=+0.189 win=0.52 {'sl': 257, 'tp': 308, 'time': 116, 'res': 17}
