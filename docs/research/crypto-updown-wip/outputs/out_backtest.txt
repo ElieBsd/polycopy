@@ -17,3 +17,33 @@ train 2574 test 1426
    TEST  n=  318 pnl/share=+0.1228 IC95=[+0.0869,+0.1547] ret/$=+0.501 win=0.51 {'sl': 143, 'res': 15, 'tp': 142, 'time': 18}
    TEST slip=1c n=  318 pnl/share=+0.0979 IC95=[+0.0614,+0.1296] ret/$=+0.381 win=0.49 {'sl': 153, 'res': 12, 'tp': 133, 'time': 20}
    TEST lat=3s n=  315 pnl/share=+0.0574 IC95=[+0.0225,+0.0913] ret/$=+0.276 win=0.46 {'sl': 165, 'res': 18, 'tp': 105, 'time': 27}
+
+== S2 momentum best params=(0.25, 5) exits=(0.4, 1.0, 285)
+   TRAIN n=  831 pnl/share=+0.0498 IC95=[+0.0196,+0.0774] ret/$=+0.082 win=0.70 {'res': 288, 'time': 356, 'tp': 187}
+   TEST  n=  509 pnl/share=+0.0314 IC95=[-0.0076,+0.0679] ret/$=+0.059 win=0.69 {'tp': 121, 'res': 201, 'time': 187}
+   TEST slip=1c n=  509 pnl/share=+0.0119 IC95=[-0.0255,+0.0481] ret/$=+0.025 win=0.68 {'tp': 108, 'res': 206, 'time': 195}
+   TEST lat=3s n=  507 pnl/share=+0.0149 IC95=[-0.0210,+0.0520] ret/$=+0.041 win=0.67 {'time': 193, 'tp': 114, 'res': 200}
+
+== S3 écart FV-marché, sortie active best params=(0.12,) exits=(0.4, 0.1, 285)
+   TRAIN n= 2323 pnl/share=+0.0830 IC95=[+0.0721,+0.0947] ret/$=+0.211 win=0.49 {'time': 195, 'tp': 680, 'sl': 1185, 'res': 263}
+   TEST  n= 1303 pnl/share=+0.0828 IC95=[+0.0691,+0.0986] ret/$=+0.231 win=0.48 {'tp': 396, 'sl': 672, 'time': 122, 'res': 113}
+   TEST slip=1c n= 1303 pnl/share=+0.0625 IC95=[+0.0479,+0.0778] ret/$=+0.175 win=0.47 {'sl': 694, 'time': 123, 'tp': 368, 'res': 118}
+   TEST lat=3s n= 1301 pnl/share=+0.0419 IC95=[+0.0276,+0.0566] ret/$=+0.123 win=0.43 {'sl': 750, 'time': 138, 'tp': 277, 'res': 136}
+
+== S3h écart FV-marché, garde jusqu'à résolution best params=(0.12,) exits=(1, 1, 300)
+   TRAIN n= 2323 pnl/share=+0.0835 IC95=[+0.0646,+0.1027] ret/$=+0.209 win=0.62 {'res': 2323}
+   TEST  n= 1303 pnl/share=+0.0930 IC95=[+0.0680,+0.1182] ret/$=+0.244 win=0.62 {'res': 1303}
+   TEST slip=1c n= 1303 pnl/share=+0.0830 IC95=[+0.0580,+0.1083] ret/$=+0.211 win=0.62 {'res': 1303}
+   TEST lat=3s n= 1301 pnl/share=+0.0588 IC95=[+0.0348,+0.0834] ret/$=+0.151 win=0.62 {'res': 1301}
+
+== S4 longshot gardé best params=(0.15, 15, 120) exits=(1, 1, 300)
+   TRAIN n= 1119 pnl/share=+0.0043 IC95=[-0.0165,+0.0273] ret/$=+0.028 win=0.15 {'res': 1119}
+   TEST  n=  597 pnl/share=-0.0214 IC95=[-0.0450,+0.0054] ret/$=-0.176 win=0.12 {'res': 597}
+   TEST slip=1c n=  597 pnl/share=-0.0319 IC95=[-0.0555,-0.0052] ret/$=-0.232 win=0.12 {'res': 597}
+   TEST lat=3s n=  581 pnl/share=-0.0191 IC95=[-0.0442,+0.0073] ret/$=-0.173 win=0.12 {'res': 581}
+
+== S5 favori tardif gardé best params=(0.85, 0.95, 270, 0.97) exits=(1, 1, 300)
+   TRAIN n=   95 pnl/share=+0.0505 IC95=[+0.0183,+0.0740] ret/$=+0.055 win=0.98 {'res': 95}
+   TEST  n=   61 pnl/share=+0.0219 IC95=[-0.0350,+0.0675] ret/$=+0.022 win=0.95 {'res': 61}
+   TEST slip=1c n=   61 pnl/share=+0.0125 IC95=[-0.0445,+0.0581] ret/$=+0.012 win=0.95 {'res': 61}
+   TEST lat=3s n=   41 pnl/share=+0.0196 IC95=[-0.0477,+0.0741] ret/$=+0.025 win=0.95 {'res': 41}
